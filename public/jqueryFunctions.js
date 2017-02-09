@@ -12,7 +12,15 @@ const escapeHtml = string => String(string).replace(/[&<>"'`=\/]/g, s => entityM
 
 function addItem () {
   const content = $('#new-todo').val()
-  $.post(`/write/${escapeHtml(content)}`, (data) => read(afterRead))
+  $.post(`/write/${escapeHtml(content)}`, function (data) {
+    $(`#result ul`).append(`
+       <li id="${data}">
+          <input class ="checkbox" type="checkbox" name="checkbox" id="id${data}" >
+          <label for="id${data}">${content}</label>
+          <input class="editTextbox" type="text" name="editableText" style="display:none">
+          <button class="delete">X</button>
+        </li>`)
+  })
   $('#new-todo').val('')
 }
 
@@ -21,7 +29,7 @@ function updateStatus (id, status) {
     url: `/update/${id}`,
     type: 'PUT',
     data: `description=&status=${status}`,
-    success: (result) => read(afterRead)
+    success: (result) => (result)
   })
 }
 
@@ -30,7 +38,7 @@ function updateDescription (id, description) {
     url: `/update/${id}`,
     type: 'PUT',
     data: `description=${escapeHtml(description)}&status=`,
-    success: (result) => read(afterRead)
+    success: (result) => (result)
   })
 }
 
@@ -38,17 +46,18 @@ function deleteItem (id) {
   $.ajax({
     url: `/delete/${id}`,
     type: 'DELETE',
-    success: (result) => read(afterRead)
+    success: (result) => (
+      $(`li#${id}`).remove())
   })
 }
 
-function afterRead () {
+function afterRead () {// check this
   $('#header #new-todo').keyup(function (event) {
     if (event.keyCode === 13) {
       addItem()
     }
   })
-  $('#write_button').click(() => addItem())
+  /*$('#write_button').click(() => addItem())*/
 
   $('.delete').click(function () {
     deleteItem($(this).closest('li').attr('id'))
