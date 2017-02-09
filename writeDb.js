@@ -1,6 +1,5 @@
 module.exports = function (sequelize, res, contentToWrite) {
-  sequelize.query(`INSERT INTO task (description, status) VALUES ('${contentToWrite}',false)`,
-    { type: sequelize.QueryTypes.INSERT })
+  sequelize.query(`INSERT INTO task (description, status) VALUES ('${contentToWrite}',false)`)
     .then(function (task) {
       console.log('The task is added to the task list')
       res.send('The task is added to the task list')

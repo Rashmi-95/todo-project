@@ -29,7 +29,7 @@ function updateDescription (id, description) {
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
-    data: `description=${description}&status=`,
+    data: `description=${escapeHtml(description)}&status=`,
     success: (result) => read(afterRead)
   })
 }
@@ -43,6 +43,11 @@ function deleteItem (id) {
 }
 
 function afterRead () {
+  $('#header #new-todo').keyup(function (event) {
+    if (event.keyCode === 13) {
+      addItem()
+    }
+  })
   $('#write_button').click(() => addItem())
 
   $('.delete').click(function () {
@@ -59,6 +64,7 @@ function afterRead () {
   })
 
   $('.editTextbox').focusout(function () {
+    console.log('edit')
     const value = $(this).hide().val()
     $(this).prev().html($(this).val()).show()
     updateDescription($(this).closest('li').attr('id'), value)
@@ -81,7 +87,7 @@ function read (afterRead) {
         </li>`
     })
     content += '</ul>'
-    $('div#result').html(content)
+    $('#result').html(content)
     $('.editTextbox').hide()
     afterRead()
   })

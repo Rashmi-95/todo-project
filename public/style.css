@@ -50,7 +50,7 @@ ul li:hover {
     position: absolute;
     right: 0;
     top: 0;
-    padding: 14px;
+    padding: 15px;
 }
 .delete:hover {
     background-color: #f44336;
@@ -69,4 +69,9 @@ input[type=checkbox]:checked + label {
     border: none;
     width: 70%;
     font-size: 16px;
+}
+#info{
+    font-size: 10px;
+    margin:auto;
+    text-align: center;
 }
