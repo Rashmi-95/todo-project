@@ -6,15 +6,28 @@
 </head>
 
 <body>
+  <section>
   <h1>todos</h1>
   <div id="header">
+    <input id="drop-down" type="checkbox">
     <input id="new-todo" type="text" name="data" placeholder="What needs to be done?">
     <!--<button id="write_button">ADD</button>-->
   </div>
   <div id="result">
   </div>
+  
+  <footer class="footer" style="display: block;">
+    <span class="todo-count"><strong>8</strong> items left</span>
+    <ul class="filters">
+      <li><a href="#/" class="selected">All</a></li>
+      <li><a href="#/active">Active</a></li>
+      <li><a href="#/completed">Completed</a></li>
+    </ul>
+    <button class="clear-completed" style="display: none;"></button>
+  </footer>
+  </section>
   <p class="info">Double-click to edit a todo</p>
-  <p class="info">created by Rashmi</p>  
+  <p class="info">created by Rashmi</p>
   <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
     crossorigin="anonymous"></script>
     <script src="jqueryFunctions.js"></script>

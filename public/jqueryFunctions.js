@@ -10,7 +10,7 @@ var entityMap = {
 }
 const escapeHtml = string => String(string).replace(/[&<>"'`=\/]/g, s => entityMap[s])
 
-function addItem () {
+function addItem(afterRead) {
   const content = $('#new-todo').val()
   $.post(`/write/${escapeHtml(content)}`, function (data) {
     $(`#result ul`).append(`
@@ -20,11 +20,12 @@ function addItem () {
           <input class="editTextbox" type="text" name="editableText" style="display:none">
           <button class="delete">X</button>
         </li>`)
+    $('#new-todo').val('')
+    afterRead()
   })
-  $('#new-todo').val('')
 }
 
-function updateStatus (id, status) {
+function updateStatus(id, status) {
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
@@ -33,16 +34,16 @@ function updateStatus (id, status) {
   })
 }
 
-function updateDescription (id, description) {
+function updateDescription(id, description) {
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
     data: `description=${escapeHtml(description)}&status=`,
-    success: (result) => (result)
+    success: (result) => (result) // false case
   })
 }
 
-function deleteItem (id) {
+function deleteItem(id) {
   $.ajax({
     url: `/delete/${id}`,
     type: 'DELETE',
@@ -51,25 +52,28 @@ function deleteItem (id) {
   })
 }
 
-function afterRead () {// check this
+function afterRead() { // check this
   $('#header #new-todo').keyup(function (event) {
     if (event.keyCode === 13) {
-      addItem()
+      addItem(afterRead)
     }
   })
-  /*$('#write_button').click(() => addItem())*/
+  /* $('#write_button').click(() => addItem())*/
 
   $('.delete').click(function () {
+    console.log('delete')
     deleteItem($(this).closest('li').attr('id'))
   })
 
   $('.checkbox').change(function () {
+    console.log('checkbox');
     (this.checked) ? updateStatus($(this).closest('li').attr('id'), true) : updateStatus($(this).closest('li').attr('id'), false)
   })
 
   $('li').dblclick(function () {
+    console.log('double click')
     const value = $(this).find('label').hide().text()
-    $(this).find('.editTextbox').show().focus().val(value)
+    $(this).find('.editTextbox').show().focus().val(value)//dash case for names
   })
 
   $('.editTextbox').focusout(function () {
@@ -80,7 +84,7 @@ function afterRead () {// check this
   })
 }
 
-function read (afterRead) {
+function read(afterRead) {
   $.get('/read', (data) => {
     let content = '<ul>'
     let checked
