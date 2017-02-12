@@ -8,113 +8,47 @@ var entityMap = {
   '`': '&#x60;',
   '=': '&#x3D;'
 }
-const escapeHtml = string => String(string).replace(/[&<>"'`=\/]/g, s => entityMap[s])
-let todos = []
+const escapeHtml = string => String(string).replace(/[&<>"'`=/]/g, s => entityMap[s])
+let todos = {}
 
-function filterList () {
-  const url = location.hash
-  $('.filters a').prop('class', '')
-  switch (url) {
-    case '#/': $('a[href$="#/"').attr('class', 'selected')
-      $('.todo-list li').show()
-      break
-    case '#/active': $('a[href$="#/active"]').attr('class', 'selected')
-      $('.todo-list .active').show()
-      $('.todo-list .completed').hide()
-      break
-    case '#/completed': $('a[href$="#/completed" ]').attr('class', 'selected')
-      $('.todo-list .active').hide()
-      $('.todo-list .completed').show()
-      break
-  }
+window.onscroll = function () {
+  (pageYOffset >= 200) ? $('#scrollUp').fadeIn() : $('#scrollUp').fadeOut()
 }
-function checkall (status) {
+
+function checkall(status) {
+  //console.log('ckeckAll')
   $.ajax({
     url: `/update/`,
     type: 'PUT',
     data: `checkAll=${status}`,
     success: (result) => {
-      todos.forEach((item) => (item.status = status))
-      const className = (status) ? 'completed' : 'active'
-      $(`.main li`).prop('class', className)
-      showActiveCount()
-      showClearComplete()
-      filterList()
+      for (let key in todos) {
+        todos[key].status = status
+      }
+      render()
     }
   })
 }
 
-function hideWhenNoList() {
-  console.log(todos, todos.empty, todos.length)
-  if (todos.empty || todos.length === 0) {
-    $('.toggle-all').hide()
-    $('.footer').hide()
-  } else {
-    $('.toggle-all').show()
-    $('.footer').show()
-  }
-}
-function deleteCompleted () {
+function deleteCompleted() {
+  //console.log('deleteCompleted')
   $.ajax({
     url: `/delete/`,
     type: 'DELETE',
     data: `status=true`,
     success: (result) => {
-      todos.forEach(function (index) {
-        if (index.status === true) {
-          delete todos[index.id]
-          $(`li#${index.id}`).remove()
+      for (let key in todos) {
+        if (todos[key].status === true) {
+          delete todos[key]
         }
-      })
-      $('.clear-completed').hide()
-      showActiveCount()
-      filterList()
-      hideWhenNoList()
+      }
+      render()
     }
   })
 }
 
-function createLi (id, description, checked = '') {
-  const className = (checked === '') ? 'active' : 'completed'
-  return `<li id="${id}" class ="${className}">
-      <div class="view">
-      <input class ="toggle" type="checkbox" id="todo-checkbox-${id}" ${checked}>
-      <label id="todo-label-${id}">${description}</label>
-      <input id="todo-edit-textbox-${id}" class="edit" type="text" name="editableText">
-      <button id="todo-button-${id}" class="destroy"></button>
-      </div>
-      
-      </li>`
-}
-
-function getActiveList () {
-  const filteredList = todos.filter((item) => {
-    return !item.status
-  })
-  return filteredList
-}
-
-function getCompletedList () {
-  const filteredList = todos.filter((item) => {
-    return item.status
-  })
-  return filteredList
-}
-
-function deleteItem (id) {
-  $.ajax({
-    url: `/delete/${id}`,
-    type: 'DELETE',
-    success: (result) => {
-      delete todos[id]
-      $(`li#${id}`).remove()
-      showClearComplete()
-      showActiveCount()
-    }
-  })
-}
-
-function updateStatus (id, status) {
+function updateStatus(id, status) {
+  //console.log('updateStatus', id, status)
   const ItemStatus = status
   $.ajax({
     url: `/update/${id}`,
@@ -122,39 +56,48 @@ function updateStatus (id, status) {
     data: `description=&status=${ItemStatus}`,
     success: (result) => {
       todos[id].status = ItemStatus
-      const className = (ItemStatus) ? 'completed' : 'active'
-      $(`li#${id}`).prop('class', className)
-      showActiveCount()
-      showClearComplete()
+      render()
     }
   })
 }
 
-function updateDescription (id, updateDescription, originalDescription) {
-  if (updateDescription !== originalDescription) {
-    $.ajax({
-      url: `/update/${id}`,
-      type: 'PUT',
-      data: `description=${escapeHtml(updateDescription)}&status=`,
-      success: (result) => (todos[id].status = status)
-    })
-  }
-}
-
-function addItem () {
-  const content = $('.new-todo').val()
-  if (content !== '') {
-    $.post(`/write/${escapeHtml(content)}`, function (data) {
-      todos[data] = { 'id': data, 'description': content, 'status': false }
-      $('.new-todo').val('')
+function updateDescription(id, updateDescription) {
+  //console.log('updateDescription')
+  $.ajax({
+    url: `/update/${id}`,
+    type: 'PUT',
+    data: `description=${escapeHtml(updateDescription)}&status=`,
+    success: (result) => {
+      todos[id].description = updateDescription
       render()
-      filterList()
-      hideWhenNoList()
-    })
-  }
+    }
+  })
 }
 
-function itemFunctionality () {
+function addItem(content) {
+  //console.log('addItem')
+  $.post(`/write/${escapeHtml(content)}`, function (data) {
+    todos[data] = { 'description': content, 'status': false }
+    $('.new-todo').val('')
+    $('html, body').animate({ scrollTop: $(document).height() }, 'slow')
+    render()
+  })
+}
+
+function deleteItem(id) {
+  //console.log('deleteItem')
+  $.ajax({
+    url: `/delete/${id}`,
+    type: 'DELETE',
+    success: (result) => {
+      delete todos[id]
+      render()
+    }
+  })
+}
+
+function itemFunctionality() {
+  //console.log('itemFunctionality')
   $('.destroy').click(function () {
     deleteItem($(this).closest('li').attr('id'))
   })
@@ -171,35 +114,161 @@ function itemFunctionality () {
   })
 
   $('.edit').focusout(function () {
+    //console.log('focusout')
     const changedContent = $(this).hide().val()
     if (changedContent === '') {
       deleteItem($(this).closest('li').attr('id'))
     } else {
       const originalContent = $(this).prev().text()
-      $(this).prev().html($(this).val()).show()
-      updateDescription($(this).closest('li').attr('id'), changedContent, originalContent)
+      if (changedContent !== originalContent) {
+        updateDescription($(this).closest('li').attr('id'), changedContent)
+      }
+    }
+  })
+
+  $('.edit').keyup(function (event) {
+    if (event.which === 13) {
+      $(this).focusout()
+    } else if (event.which === 27) {
+      //console.log('esc')
+      $(this).off('focusout').hide()
+      $(this).prev().show()
     }
   })
 }
 
-function listFunctionality () {
+function listFunctionality() {
+  //console.log('listFunctionality')
   $('.header .new-todo').keyup(function (event) {
-    if (event.keyCode === 13) {
-      addItem()
+    const content = $('.new-todo').val()
+    if (event.keyCode === 13 && content !== '') {
+      addItem(content)
+    } else {
+      $('html, body').animate({ scrollTop: 0 }, 50)
     }
   })
 
   $('.toggle-all').change(function () {
     const status = this.checked
-    $('.toggle').prop('checked', status)
-    checkall(status)
+    const toggle = (status) ? 'check' : 'uncheck'
+    const r = confirm(`Are you u want to ${toggle} all items?`)
+    if (r === true) {
+      $('.toggle').prop('checked', status)
+      checkall(status)
+    } else {
+      $('.toggle-all').prop('checked', !this.checked)
+    }
   })
 
   $('.clear-completed').click(() => deleteCompleted())
 
   $(window).on('hashchange', () => filterList())
+
+  $('#scrollUp').click(function () {
+    $('html, body').animate({ scrollTop: 0 }, 800)
+    return false
+  })
 }
-function read () {
+
+function createLi(id, description, checked = '') {
+  //console.log('createLi')
+  const className = (checked === '') ? 'active' : 'completed'
+  return `<li id="${id}" class ="${className}">
+      <div class="view">
+      <input class ="toggle" type="checkbox" id="todo-checkbox-${id}" ${checked}>
+      <label id="todo-label-${id}">${description}</label>
+      <input id="todo-edit-textbox-${id}" class="edit" type="text" name="editableText">
+      <button id="todo-button-${id}" class="destroy"></button>
+      </div>
+      
+      </li>`
+}
+
+function showActiveCount() {
+  //console.log('showActiveCount')
+  const activeList = filterTodo(false)
+  const activeListCount = Object.keys(activeList).length
+  $('.todo-count').text(`${activeListCount} items left`);
+  (activeListCount === 0) ? $('.toggle-all').prop('checked', true) : $('.toggle-all').prop('checked', false)
+}
+
+function showClearComplete() {
+  //console.log('showClearComplete')
+  const completedList = filterTodo(true);
+  (Object.keys(completedList).length === 0) ? $('.clear-completed').hide() : $('.clear-completed').show()
+}
+
+function filterTodo(status) {
+  //console.log('getActiveList')
+  let filteredList = {}
+  for (let key in todos) {
+    if (todos[key].status === status) {
+      filteredList[key] = todos[key]
+    }
+  }
+  return filteredList
+}
+
+function hideWhenNoList() {
+  //console.log('hideWhenNoList')
+  if (Object.keys(todos).length === 0) {
+    $('.footer').hide()
+    $('.toggle-all').hide()
+  } else {
+    $('.footer').show()
+    $('.toggle-all').show()
+  }
+}
+
+function filterList() {
+  //console.log('filterList')
+  const url = location.hash
+  $('.filters a').prop('class', '')
+  switch (url) {
+    case '#/': $('a[href$="#/"').attr('class', 'selected')
+      $('.todo-list li').show()
+      break
+    case '#/active': $('a[href$="#/active"]').attr('class', 'selected')
+      $('.todo-list .active').show()
+      $('.todo-list .completed').hide()
+      break
+    case '#/completed': $('a[href$="#/completed" ]').attr('class', 'selected')
+      $('.todo-list .active').hide()
+      $('.todo-list .completed').show()
+      break
+  }
+}
+
+function getDomList() {
+  let domList = '<ul class="todo-list">'
+  let checked
+  for (let key in todos) {
+    let description = escapeHtml(todos[key].description)
+    checked = (todos[key].status === true) ? 'checked' : ''
+    domList += createLi(key, description, checked)
+    if (todos[key].status === false) {
+      $('.toggle-all').prop('checked', false)
+    }
+  }
+  domList += '</ul>'
+  return domList
+}
+
+function render() {
+  //console.log(todos)
+  //console.log('render')
+  const domList = getDomList()
+  $('.main').html(domList)
+  $('.editTextbox').hide()
+  showActiveCount()
+  showClearComplete()
+  hideWhenNoList()
+  filterList()
+  itemFunctionality()
+}
+
+function read() {
+  //console.log('read')
   $.get('/read', (data) => {
     data.forEach(function (item) {
       todos[item.id] = item
@@ -209,35 +278,6 @@ function read () {
   })
 }
 
-function showActiveCount () {
-  const activeList = getActiveList()
-  $('.todo-count').text(`${activeList.length} items left`)
-}
-
-function showClearComplete () {
-  const completedList = getCompletedList();
-  (completedList.length === 0) ? $('.clear-completed').hide() : $('.clear-completed').show()
-}
-
-function render () {
-  showActiveCount()
-  showClearComplete()
-  let content = '<ul class="todo-list">'
-  let checked
-  todos.forEach(function (item) {
-    let description = escapeHtml(item.description)
-    checked = (item.status === true) ? 'checked' : ''
-    content += createLi(item.id, description, checked)
-    if (item.status === false) {
-      $('.toggle-all').prop('checked', false)
-    }
-  })
-  content += '</ul>'
-  $('.main').html(content)
-  $('.editTextbox').hide()
-  itemFunctionality()
-  hideWhenNoList()
-}
 $(document).ready(function () {
   read()
 })
