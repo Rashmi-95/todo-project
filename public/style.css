@@ -161,7 +161,7 @@ label[for='toggle-all'] {
 	border-bottom: none;
 }
 
-.todo-list li.editing {
+/*.todo-list li.editing {
 	border-bottom: none;
 	padding: 0;
 }
@@ -175,7 +175,7 @@ label[for='toggle-all'] {
 
 .todo-list li.editing .view {
 	display: none;
-}
+}*/
 
 .todo-list li .toggle {
     color: red;

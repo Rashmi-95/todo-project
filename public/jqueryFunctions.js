@@ -286,3 +286,7 @@ function read () {
 $(document).ready(function () {
   read()
 })
+
+module.exports = {
+  escapeHtml
+}

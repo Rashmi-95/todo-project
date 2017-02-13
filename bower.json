@@ -1,0 +1,17 @@
+{
+  "name": "Test",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "rashmi-95 <rashmi05rash@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/Rashmi-95/todo-project",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
