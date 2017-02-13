@@ -15,8 +15,8 @@ window.onscroll = function () {
   (pageYOffset >= 200) ? $('#scrollUp').fadeIn() : $('#scrollUp').fadeOut()
 }
 
-function checkall(status) {
-  //console.log('ckeckAll')
+function checkall (status) {
+  // console.log('ckeckAll')
   $.ajax({
     url: `/update/`,
     type: 'PUT',
@@ -30,8 +30,8 @@ function checkall(status) {
   })
 }
 
-function deleteCompleted() {
-  //console.log('deleteCompleted')
+function deleteCompleted () {
+  // console.log('deleteCompleted')
   $.ajax({
     url: `/delete/`,
     type: 'DELETE',
@@ -47,8 +47,8 @@ function deleteCompleted() {
   })
 }
 
-function updateStatus(id, status) {
-  //console.log('updateStatus', id, status)
+function updateStatus (id, status) {
+  // console.log('updateStatus', id, status)
   const ItemStatus = status
   $.ajax({
     url: `/update/${id}`,
@@ -61,8 +61,8 @@ function updateStatus(id, status) {
   })
 }
 
-function updateDescription(id, updateDescription) {
-  //console.log('updateDescription')
+function updateDescription (id, updateDescription) {
+  // console.log('updateDescription')
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
@@ -74,18 +74,18 @@ function updateDescription(id, updateDescription) {
   })
 }
 
-function addItem(content) {
-  //console.log('addItem')
+function addItem (content) {
+  // console.log('addItem')
   $.post(`/write/${escapeHtml(content)}`, function (data) {
-    todos[data] = { 'description': content, 'status': false }
+    todos[data] = { 'description': escapeHtml(content), 'status': false }
     $('.new-todo').val('')
     $('html, body').animate({ scrollTop: $(document).height() }, 'slow')
     render()
   })
 }
 
-function deleteItem(id) {
-  //console.log('deleteItem')
+function deleteItem (id) {
+  // console.log('deleteItem')
   $.ajax({
     url: `/delete/${id}`,
     type: 'DELETE',
@@ -96,8 +96,8 @@ function deleteItem(id) {
   })
 }
 
-function itemFunctionality() {
-  //console.log('itemFunctionality')
+function itemFunctionality () {
+  // console.log('itemFunctionality')
   $('.destroy').click(function () {
     deleteItem($(this).closest('li').attr('id'))
   })
@@ -114,7 +114,7 @@ function itemFunctionality() {
   })
 
   $('.edit').focusout(function () {
-    //console.log('focusout')
+    // console.log('focusout')
     const changedContent = $(this).hide().val()
     if (changedContent === '') {
       deleteItem($(this).closest('li').attr('id'))
@@ -122,6 +122,8 @@ function itemFunctionality() {
       const originalContent = $(this).prev().text()
       if (changedContent !== originalContent) {
         updateDescription($(this).closest('li').attr('id'), changedContent)
+      } else {
+        $(this).prev().show()
       }
     }
   })
@@ -130,15 +132,15 @@ function itemFunctionality() {
     if (event.which === 13) {
       $(this).focusout()
     } else if (event.which === 27) {
-      //console.log('esc')
+      // console.log('esc')
       $(this).off('focusout').hide()
       $(this).prev().show()
     }
   })
 }
 
-function listFunctionality() {
-  //console.log('listFunctionality')
+function listFunctionality () {
+  // console.log('listFunctionality')
   $('.header .new-todo').keyup(function (event) {
     const content = $('.new-todo').val()
     if (event.keyCode === 13 && content !== '') {
@@ -170,8 +172,8 @@ function listFunctionality() {
   })
 }
 
-function createLi(id, description, checked = '') {
-  //console.log('createLi')
+function createLi (id, description, checked = '') {
+  // console.log('createLi')
   const className = (checked === '') ? 'active' : 'completed'
   return `<li id="${id}" class ="${className}">
       <div class="view">
@@ -184,22 +186,23 @@ function createLi(id, description, checked = '') {
       </li>`
 }
 
-function showActiveCount() {
-  //console.log('showActiveCount')
+function showActiveCount () {
+  // console.log('showActiveCount')
   const activeList = filterTodo(false)
   const activeListCount = Object.keys(activeList).length
-  $('.todo-count').text(`${activeListCount} items left`);
+  const itemString = (activeListCount === 1) ? 'item' : 'items'
+  $('.todo-count').text(`${activeListCount} ${itemString} left`);
   (activeListCount === 0) ? $('.toggle-all').prop('checked', true) : $('.toggle-all').prop('checked', false)
 }
 
-function showClearComplete() {
-  //console.log('showClearComplete')
+function showClearComplete () {
+  // console.log('showClearComplete')
   const completedList = filterTodo(true);
   (Object.keys(completedList).length === 0) ? $('.clear-completed').hide() : $('.clear-completed').show()
 }
 
-function filterTodo(status) {
-  //console.log('getActiveList')
+function filterTodo (status) {
+  // console.log('getActiveList')
   let filteredList = {}
   for (let key in todos) {
     if (todos[key].status === status) {
@@ -209,8 +212,8 @@ function filterTodo(status) {
   return filteredList
 }
 
-function hideWhenNoList() {
-  //console.log('hideWhenNoList')
+function hideWhenNoList () {
+  // console.log('hideWhenNoList')
   if (Object.keys(todos).length === 0) {
     $('.footer').hide()
     $('.toggle-all').hide()
@@ -220,8 +223,8 @@ function hideWhenNoList() {
   }
 }
 
-function filterList() {
-  //console.log('filterList')
+function filterList () {
+  // console.log('filterList')
   const url = location.hash
   $('.filters a').prop('class', '')
   switch (url) {
@@ -236,10 +239,12 @@ function filterList() {
       $('.todo-list .active').hide()
       $('.todo-list .completed').show()
       break
+    default: $('a[href$="#/"').attr('class', 'selected')
+      $('.todo-list li').show()
   }
 }
 
-function getDomList() {
+function getDomList () {
   let domList = '<ul class="todo-list">'
   let checked
   for (let key in todos) {
@@ -254,9 +259,9 @@ function getDomList() {
   return domList
 }
 
-function render() {
-  //console.log(todos)
-  //console.log('render')
+function render () {
+  // console.log(todos)
+  // console.log('render')
   const domList = getDomList()
   $('.main').html(domList)
   $('.editTextbox').hide()
@@ -267,8 +272,8 @@ function render() {
   itemFunctionality()
 }
 
-function read() {
-  //console.log('read')
+function read () {
+  // console.log('read')
   $.get('/read', (data) => {
     data.forEach(function (item) {
       todos[item.id] = item
