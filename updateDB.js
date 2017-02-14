@@ -21,8 +21,8 @@ module.exports = function (sequelize, res, description, status, id) {
         res.send(`The task with id=${id} doesnt exist to update`)
       }
     })
-    .catch(function () {
-      console.log('Error in Updating')
-      res.send('Error in Updating')
+    .catch(function (error) {
+      console.log(error)
+      res.send(error)
     })
 }

@@ -26,6 +26,10 @@ app.get('/read', function (req, res) {
   readFromDB(sequelize, res)
 })
 
+app.get('/test', function (req, res) {
+  res.sendFile('test/index.html')
+})
+
 app.post('/write/:content', function (req, res) {
   const contentToWrite = req.params.content
   writeToDB(sequelize, res, contentToWrite)

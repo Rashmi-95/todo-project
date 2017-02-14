@@ -15,141 +15,66 @@ window.onscroll = function () {
   (pageYOffset >= 200) ? $('#scrollUp').fadeIn() : $('#scrollUp').fadeOut()
 }
 
-function checkall(checkStatus, testcallback) {
+function checkall (status) {
   // console.log('ckeckAll')
   $.ajax({
     url: `/update/`,
     type: 'PUT',
-    data: `checkAll=${checkStatus}`,
-    success: (result, status, xhr) => {
+    data: `checkAll=${status}`,
+    success: (result) => {
       for (let key in todos) {
-        todos[key].status = checkStatus
+        todos[key].status = status
       }
       render()
-      testcallback(xhr)
     },
     error: function (textStatus, errorThrown) {
       render()
-      console.log(textStatus, errorThrown)
-      testcallback(textStatus, errorThrown)
     }
   })
 }
 
-function deleteCompleted(testcallback) {
+function deleteCompleted() {
   // console.log('deleteCompleted')
   $.ajax({
     url: `/delete/`,
     type: 'DELETE',
     data: `status=true`,
-    success: (result, status, xhr) => {
+    success: (result) => {
       for (let key in todos) {
         if (todos[key].status === true) {
           delete todos[key]
         }
       }
       render()
-      testcallback(xhr)
-    },
-    error: function (textStatus, errorThrown) {
-      render()
-      console.log(textStatus, errorThrown)
-      testcallback(textStatus, errorThrown)
     }
   })
 }
 
-function updateStatus(id, status, testcallback) {
+function updateStatus(id, status) {
   // console.log('updateStatus', id, status)
   const ItemStatus = status
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
     data: `description=&status=${ItemStatus}`,
-    success: (result, status, xhr) => {
-      if (xhr.responseText === `The task with id=${id} doesnt exist to update`);
-      else {
-        todos[id].status = ItemStatus
-      }
+    success: (result) => {
+      todos[id].status = ItemStatus
       render()
-      testcallback(xhr)
-    },
-    error: function (textStatus, errorThrown) {
-      render()
-      console.log(textStatus, errorThrown)
-      testcallback(textStatus, errorThrown)
     }
   })
 }
 
-function updateDescription(id, updateDescription, testcallback) {
+function updateDescription(id, updateDescription) {
   // console.log('updateDescription')
   $.ajax({
     url: `/update/${id}`,
     type: 'PUT',
     data: `description=${escapeHtml(updateDescription)}&status=`,
-    success: (result, status, xhr) => {
-      if (xhr.responseText === `The task with id=${id} doesnt exist to update`);
-      else {
-        todos[id].description = updateDescription
-      }
+    success: (result) => {
+      todos[id].description = updateDescription
       render()
-      testcallback(xhr)
-    },
-    error: function (textStatus, errorThrown) {
-      render()
-      console.log(textStatus, errorThrown)
-      testcallback(textStatus, errorThrown)
     }
   })
-}
-
-function deleteItem(id, testcallback) {
-  // console.log('deleteItem')
-  $.ajax({
-    url: `/delete/${id}`,
-    type: 'DELETE',
-    success: (result, status, xhr) => {
-      delete todos[id]
-      render()
-      testcallback(xhr)
-    },
-    error: function (textStatus, errorThrown) {
-      render()
-      console.log(textStatus, errorThrown)
-      testcallback(textStatus, errorThrown)
-    }
-  })
-}
-
-function filterTodo(status) {
-  // console.log('getActiveList')
-  if (status === true || status === false) {
-    let filteredList = {}
-    for (let key in todos) {
-      if (todos[key].status === status) {
-        filteredList[key] = todos[key]
-      }
-    }
-    return filteredList
-  } else {
-    return 'Invalid Status'
-  }
-}
-
-function getDomList() {
-  let domList = '<ul class="todo-list">'
-  let checked
-  for (let key in todos) {
-    let description = escapeHtml(todos[key].description)
-    checked = (todos[key].status === true) ? 'checked' : ''
-    domList += createLi(key, description, checked)
-    if (todos[key].status === false) {
-      $('.toggle-all').prop('checked', false)
-    }
-  }
-  domList += '</ul>'
-  return domList
 }
 
 function addItem(content) {
@@ -162,29 +87,27 @@ function addItem(content) {
   })
 }
 
-function createLi(id, description, checked = '') {
-  // console.log('createLi')
-  const className = (checked === '') ? 'active' : 'completed'
-  return `<li id="${id}" class ="${className}">
-      <div class="view">
-      <input class ="toggle" type="checkbox" id="todo-checkbox-${id}" ${checked}>
-      <label id="todo-label-${id}">${description}</label>
-      <input id="todo-edit-textbox-${id}" class="edit" type="text" name="editableText">
-      <button id="todo-button-${id}" class="destroy"></button>
-      </div>
-      
-      </li>`
+function deleteItem(id) {
+  // console.log('deleteItem')
+  $.ajax({
+    url: `/delete/${id}`,
+    type: 'DELETE',
+    success: (result) => {
+      delete todos[id]
+      render()
+    }
+  })
 }
 
 function itemFunctionality() {
   // console.log('itemFunctionality')
   $('.destroy').click(function () {
-    deleteItem($(this).closest('li').attr('id'), testcallback)
+    deleteItem($(this).closest('li').attr('id'))
   })
 
   $('.toggle').change(function () {
     const id = $(this).closest('li').attr('id');
-    (this.checked) ? updateStatus(id, true, testcallback) : updateStatus(id, false, testcallback)
+    (this.checked) ? updateStatus(id, true) : updateStatus(id, false)
   })
 
   $('li').dblclick(function () {
@@ -197,11 +120,11 @@ function itemFunctionality() {
     // console.log('focusout')
     const changedContent = $(this).hide().val()
     if (changedContent === '') {
-      deleteItem($(this).closest('li').attr('id'), testcallback)
+      deleteItem($(this).closest('li').attr('id'))
     } else {
       const originalContent = $(this).prev().text()
       if (changedContent !== originalContent) {
-        updateDescription($(this).closest('li').attr('id'), changedContent, testcallback)
+        updateDescription($(this).closest('li').attr('id'), changedContent)
       } else {
         $(this).prev().show()
       }
@@ -236,13 +159,13 @@ function listFunctionality() {
     const r = confirm(`Are you u want to ${toggle} all items?`)
     if (r === true) {
       $('.toggle').prop('checked', status)
-      checkall(status, testcallback)
+      checkall(status)
     } else {
       $('.toggle-all').prop('checked', !this.checked)
     }
   })
 
-  $('.clear-completed').click(() => deleteCompleted(testcallback))
+  $('.clear-completed').click(() => deleteCompleted())
 
   $(window).on('hashchange', () => filterList())
 
@@ -250,6 +173,20 @@ function listFunctionality() {
     $('html, body').animate({ scrollTop: 0 }, 800)
     return false
   })
+}
+
+function createLi(id, description, checked = '') {
+  // console.log('createLi')
+  const className = (checked === '') ? 'active' : 'completed'
+  return `<li id="${id}" class ="${className}">
+      <div class="view">
+      <input class ="toggle" type="checkbox" id="todo-checkbox-${id}" ${checked}>
+      <label id="todo-label-${id}">${description}</label>
+      <input id="todo-edit-textbox-${id}" class="edit" type="text" name="editableText">
+      <button id="todo-button-${id}" class="destroy"></button>
+      </div>
+      
+      </li>`
 }
 
 function showActiveCount() {
@@ -265,6 +202,17 @@ function showClearComplete() {
   // console.log('showClearComplete')
   const completedList = filterTodo(true);
   (Object.keys(completedList).length === 0) ? $('.clear-completed').hide() : $('.clear-completed').show()
+}
+
+function filterTodo(status) {
+  // console.log('getActiveList')
+  let filteredList = {}
+  for (let key in todos) {
+    if (todos[key].status === status) {
+      filteredList[key] = todos[key]
+    }
+  }
+  return filteredList
 }
 
 function hideWhenNoList() {
@@ -299,6 +247,21 @@ function filterList() {
   }
 }
 
+function getDomList() {
+  let domList = '<ul class="todo-list">'
+  let checked
+  for (let key in todos) {
+    let description = escapeHtml(todos[key].description)
+    checked = (todos[key].status === true) ? 'checked' : ''
+    domList += createLi(key, description, checked)
+    if (todos[key].status === false) {
+      $('.toggle-all').prop('checked', false)
+    }
+  }
+  domList += '</ul>'
+  return domList
+}
+
 function render() {
   // console.log(todos)
   // console.log('render')
@@ -321,10 +284,6 @@ function read() {
     render()
     listFunctionality()
   })
-}
-
-function testcallback() {
-  // just to use for testcase
 }
 
 $(document).ready(function () {

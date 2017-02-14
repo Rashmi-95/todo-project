@@ -14,7 +14,7 @@ module.exports = function (sequelize, res, checkAll) {
       }
     })
     .catch(function (error) {
-      console.log('Error in Updating', error)
-      res.send('Error in Updating')
+      console.log(error)
+      res.send(error)
     })
 }
